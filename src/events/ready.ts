@@ -8,11 +8,7 @@ require('dotenv').config();
 
 const exampleConfig = {
 	DevGuildId: "",
-	KeyIndex: 0,
-	SauceKeys: [
-		"your-saucenao-api-key1",
-		"your-saucenao-api-key2"
-	]
+	SauceKeys: "your-saucenao-api-key"
 }
 
 export const ready = async (client: ClientExtension) => {

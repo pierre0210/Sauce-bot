@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-	"start": "node ./prod/bot.js"
+    "start": "node ./prod/bot.js"
   },
   "author": "Pierre",
   "license": "ISC",
   "dependencies": {
     "@discordjs/builders": "^1.2.0",
     "@discordjs/rest": "^1.1.0",
+    "axios": "^0.27.2",
     "discord-api-types": "^0.37.4",
     "discord.js": "^13.10.3",
     "dotenv": "^16.0.1"
