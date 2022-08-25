@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { MessageEmbed } from "discord.js";
 import * as path from "path";
 import { Command } from "../interfaces/Command";
 import { SauceResult } from "../modules/sauceAPI";
@@ -35,6 +36,7 @@ export const sauce: Command = {
 				return;
 			}
 		}
+		await interaction.deferReply();
 		const configFilePath = path.join(process.cwd(), "prod", "config.json");
 		const config = await import(configFilePath);
 		axios.get("https://saucenao.com/search.php", {
@@ -47,10 +49,22 @@ export const sauce: Command = {
 			}
 		})
 		.then((raw: AxiosResponse) => {
-			const result = new SauceResult(raw);
+			const sauce = new SauceResult(raw);
+			const result = sauce.getResults()[0];
+			
+			const title = sauce.getTitle(result);
+			let description: string = `Author: ${sauce.getAuthor(result)} / Similarity: ${sauce.getSimilarity(result)}%\n`;
+			for(let i=0; i<sauce.getUrls(result).length; i++) {
+				description += `[Sauce${i+1}](${sauce.getUrls(result)[i]}) `;
+			}
+			const resultEmbed = new MessageEmbed().setColor("DARK_GREEN").setTitle(title).setDescription(description)
+				.setImage(sauce.getThumbnail(result))
+				.setFooter({ text: `Times remaining: ${sauce.getLimit()}` })
+				.setTimestamp();
+			interaction.followUp({ embeds: [resultEmbed] });
 		})
 		.catch((error: AxiosError) => {
-
+			interaction.followUp("Error! please try again later\n```\n" + `${error.message}` + "\n```");
 		});
 	}
 }

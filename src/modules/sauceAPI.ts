@@ -6,7 +6,7 @@ class SauceResult {
 	results: any;
 
 	constructor(raw: AxiosResponse) {
-		this.response = JSON.parse(raw.data);
+		this.response = raw.data;
 		this.header = this.response["header"];
 		this.results = this.response["results"];
 	}
@@ -69,7 +69,7 @@ class SauceResult {
 	}
 
 	public getAuthor(result: any): string {
-		let author: string = "";
+		let author: string = "unknown";
 		if(result["data"]["author"]) {
 			author = result["data"]["author"];
 		}
@@ -93,6 +93,7 @@ class SauceResult {
 		}
 		else if(result["data"]["creator"]) {
 			if(typeof result["data"]["creator"] === "object") {
+				author = "";
 				for(const person of result["data"]["creator"]) {
 					author += `${person}, `;
 				}
