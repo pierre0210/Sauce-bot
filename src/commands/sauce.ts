@@ -18,7 +18,7 @@ export const sauce: Command = {
 		let imageURL: string = "";
 		if(interaction.options.getSubcommand() === "link") {
 			const url = interaction.options.getString("image-url");
-			if(url?.endsWith(".jpg") || url?.endsWith(".png")) {
+			if(url?.endsWith(".jpg") || url?.endsWith(".jpeg") || url?.endsWith(".png")) {
 				imageURL = url;
 			}
 			else {
@@ -28,7 +28,7 @@ export const sauce: Command = {
 		}
 		else if(interaction.options.getSubcommand() === "attachment") {
 			const url = interaction.options.getAttachment("image-attachment")?.url;
-			if(url?.endsWith(".jpg") || url?.endsWith(".png")) {
+			if(url?.endsWith(".jpg") || url?.endsWith(".jpeg") || url?.endsWith(".png")) {
 				imageURL = url;
 			}
 			else {

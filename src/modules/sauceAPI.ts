@@ -45,7 +45,7 @@ class SauceResult {
 
 	public getThumbnail(result: any): string {
 		const thumbnail = result["header"]["thumbnail"] as string;
-		return decodeURIComponent(JSON.parse('"' + thumbnail.replace('"', '\\"') + '"'));
+		return encodeURI(decodeURIComponent(JSON.parse('"' + thumbnail.replace('"', '\\"') + '"')));
 	}
 
 	public getSimilarity(result: any): number {
