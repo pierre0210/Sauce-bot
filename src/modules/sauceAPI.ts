@@ -11,7 +11,7 @@ class SauceResult {
 		this.results = this.response["results"];
 	}
 
-	public getResults(): any {
+	public getResults(): any[] {
 		return this.results;
 	}
 
@@ -40,12 +40,12 @@ class SauceResult {
 		else if(result["data"]["created_at"]) {
 			title = result["data"]["created_at"];
 		}
-		return decodeURIComponent(JSON.parse('"' + title.replace('"', '\\"') + '"'));
+		return decodeURIComponent(JSON.parse('"' + title.replace(/\"/g, '\\"' + '"') + '"'));
 	}
 
 	public getThumbnail(result: any): string {
 		const thumbnail = result["header"]["thumbnail"] as string;
-		return encodeURI(decodeURIComponent(JSON.parse('"' + thumbnail.replace('"', '\\"') + '"')));
+		return encodeURI(decodeURIComponent(JSON.parse('"' + thumbnail.replace(/\"/g, '\\"' + '"') + '"')));
 	}
 
 	public getSimilarity(result: any): number {
@@ -103,7 +103,7 @@ class SauceResult {
 				author = result["data"]["creator"];
 			}
 		}
-		return decodeURIComponent(JSON.parse('"' + author.replace('"', '\\"') + '"'));
+		return decodeURIComponent(JSON.parse('"' + author.replace(/\"/g, '\\"' + '"') + '"'));
 	}
 }
 

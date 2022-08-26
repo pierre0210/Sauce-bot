@@ -10,9 +10,11 @@ export const sauce: Command = {
 	data: new SlashCommandBuilder()
 		.setName("sauce").setDescription("where's the sauce??")
 		.addSubcommand((sub) => sub.setName("link").setDescription("use url as parameter")
-			.addStringOption((option) => option.setName("image-url").setDescription("image url (ends with .jpg or .png").setRequired(true)))
+			.addStringOption((option) => option.setName("image-url").setDescription("image url (ends with .jpg .jpeg or .png").setRequired(true))
+			.addIntegerOption((option) => option.setName("result-num").setDescription("result number (max: 10)").setMinValue(1).setMaxValue(10)))
 		.addSubcommand((sub) => sub.setName("attachment").setDescription("use attachment")
-			.addAttachmentOption((option) => option.setName("image-attachment").setDescription("image attachment (.jpg or .png)").setRequired(true))),
+			.addAttachmentOption((option) => option.setName("image-attachment").setDescription("image attachment (.jpg .jpeg or .png)").setRequired(true))
+			.addIntegerOption((option) => option.setName("result-num").setDescription("result number (max: 10)").setMinValue(1).setMaxValue(10))),
 	
 	run: async(client, interaction) => {
 		let imageURL: string = "";
@@ -36,6 +38,7 @@ export const sauce: Command = {
 				return;
 			}
 		}
+		const resultNum = interaction.options.getInteger("result-num") || 1;
 		await interaction.deferReply();
 		const configFilePath = path.join(process.cwd(), "prod", "config.json");
 		const config = await import(configFilePath);
@@ -45,23 +48,33 @@ export const sauce: Command = {
 				db: 999,
 				api_key: config.SauceKeys,
 				output_type: 2,
-				numres: 3
+				numres: resultNum
 			}
 		})
 		.then((raw: AxiosResponse) => {
+			const resultEmbeds = [];
 			const sauce = new SauceResult(raw);
-			const result = sauce.getResults()[0];
-			
-			const title = sauce.getTitle(result);
-			let description: string = `Author: ${sauce.getAuthor(result)} / Similarity: ${sauce.getSimilarity(result)}%\n`;
-			for(let i=0; i<sauce.getUrls(result).length; i++) {
-				description += `[Sauce${i+1}](${sauce.getUrls(result)[i]}) `;
+			const results = sauce.getResults().sort((a, b) => {
+				const aSim = sauce.getSimilarity(a);
+				const bSim = sauce.getSimilarity(b);
+				return aSim < bSim ? 1 : (aSim > bSim ? -1 : 0);
+			});
+
+			for(const result of results) {
+				const title = sauce.getTitle(result);
+				let description: string = `**Author:** ${sauce.getAuthor(result)} / **Similarity:** ${sauce.getSimilarity(result)}%\n`;
+				for(let i=0; i<sauce.getUrls(result).length; i++) {
+					description += `[Sauce${i+1}](${sauce.getUrls(result)[i]}) `;
+				}
+				//description += `\n${sauce.getIndexName(result).split(":")[1].split("-")[0].trim()}`;
+				const resultEmbed = new MessageEmbed().setColor("DARK_GREEN").setTitle(title).setDescription(description)
+					.setImage(sauce.getThumbnail(result))
+					.setFooter({ text: `Times remaining: ${sauce.getLimit()}` })
+					.setTimestamp();
+				resultEmbeds.push(resultEmbed);
 			}
-			const resultEmbed = new MessageEmbed().setColor("DARK_GREEN").setTitle(title).setDescription(description)
-				.setImage(sauce.getThumbnail(result))
-				.setFooter({ text: `Times remaining: ${sauce.getLimit()}` })
-				.setTimestamp();
-			interaction.followUp({ embeds: [resultEmbed] });
+			
+			interaction.followUp({ embeds: resultEmbeds });
 		})
 		.catch((error: AxiosError) => {
 			interaction.followUp("Error! please try again later\n```\n" + `${error.message}` + "\n```");
