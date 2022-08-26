@@ -34,13 +34,10 @@ class SauceResult {
 		else if(result["data"]["material"]) {
 			title = result["data"]["material"];
 		}
-		else if(result["data"]["source"]) {
-			title = result["data"]["source"];
-		}
 		else if(result["data"]["created_at"]) {
 			title = result["data"]["created_at"];
 		}
-		return decodeURIComponent(JSON.parse('"' + title.replace(/\"/g, '\\"' + '"') + '"'));
+		return decodeURIComponent(JSON.parse('"' + title.replace(/\"/g, '\\"') + '"'));
 	}
 
 	public getThumbnail(result: any): string {
@@ -58,7 +55,13 @@ class SauceResult {
 
 	public getUrls(result: any): string[] {
 		if(result["data"]["ext_urls"]) {
+			if(result["data"]["source"]) {
+				result["data"]["ext_urls"].push(result["data"]["source"]);
+			}
 			return result["data"]["ext_urls"];
+		}
+		else if(result["data"]["source"]) {
+			return [result["data"]["source"]];
 		}
 		else if(result["data"]["getchu_id"]) {
 			return [`http://www.getchu.com/soft.phtml?id=${result["data"]["getchu_id"]}`];
@@ -103,7 +106,7 @@ class SauceResult {
 				author = result["data"]["creator"];
 			}
 		}
-		return decodeURIComponent(JSON.parse('"' + author.replace(/\"/g, '\\"' + '"') + '"'));
+		return decodeURIComponent(JSON.parse('"' + author.replace(/\"/g, '\\"') + '"'));
 	}
 }
 

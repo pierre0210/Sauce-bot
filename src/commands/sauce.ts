@@ -63,9 +63,11 @@ export const sauce: Command = {
 			for(const result of results) {
 				const title = sauce.getTitle(result);
 				let description: string = `**Author:** ${sauce.getAuthor(result)} / **Similarity:** ${sauce.getSimilarity(result)}%\n`;
-				for(let i=0; i<sauce.getUrls(result).length; i++) {
-					description += `[Sauce${i+1}](${sauce.getUrls(result)[i]}) `;
+				const urls = sauce.getUrls(result);
+				for(let i=0; i<urls.length; i++) {
+					description += `[Sauce${i+1}](${urls[i]}) / `;
 				}
+				description = description.slice(0, -2);
 				//description += `\n${sauce.getIndexName(result).split(":")[1].split("-")[0].trim()}`;
 				const resultEmbed = new MessageEmbed().setColor("DARK_GREEN").setTitle(title).setDescription(description)
 					.setImage(sauce.getThumbnail(result))
