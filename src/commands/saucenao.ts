@@ -6,9 +6,9 @@ import { Command } from "../interfaces/Command";
 import { SauceResult } from "../modules/sauceAPI";
 require("dotenv").config();
 
-export const sauce: Command = {
+export const saucenao: Command = {
 	data: new SlashCommandBuilder()
-		.setName("sauce").setDescription("where's the sauce??")
+		.setName("saucenao").setDescription("where's the sauce??")
 		.addSubcommand((sub) => sub.setName("link").setDescription("use url as parameter")
 			.addStringOption((option) => option.setName("image-url").setDescription("image url (ends with .jpg .jpeg or .png").setRequired(true))
 			.addIntegerOption((option) => option.setName("result-num").setDescription("result number (max: 10)").setMinValue(1).setMaxValue(10)))
