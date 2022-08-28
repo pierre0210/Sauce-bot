@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { Message } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 import path from "path";
 import FormData from "form-data";
 import { Ascii2dResult } from "../modules/ascii2dAPI";
@@ -11,7 +11,7 @@ export const messageCreate = async (message: Message) => {
 	if(config.SauceChannels.includes(message.channelId) && message.attachments.size != 0) {
 		message.attachments.forEach(async (attachment) => {
 			let imageURL: string = attachment.url;
-			if(imageURL.endsWith(".jpeg") || imageURL.endsWith(".jpg") || imageURL.endsWith(".png")) {
+			if((imageURL.endsWith(".jpeg") || imageURL.endsWith(".jpg") || imageURL.endsWith(".png")) && attachment.size < 5e6) {
 				try {
 					const formData = new FormData();
 					formData.append("uri", imageURL);
@@ -22,11 +22,23 @@ export const messageCreate = async (message: Message) => {
 					if(!results.at(0) || !results.at(1)) return;
 					const searchUrl = baseUrl+ascii2d.getThumbnail(results.at(0) as cheerio.Element);
 					const resultUrl = baseUrl+ascii2d.getThumbnail(results.at(1) as cheerio.Element);
-					console.log(searchUrl);
-					console.log(resultUrl);
+					const messageUrl = message.url;
+
+					const imageInfo = ascii2d.getImageInfo(results.at(1) as cheerio.Element);
+					const authorUrl = ascii2d.getAuthorUrl(results.at(1) as cheerio.Element);
+					const authorName = ascii2d.getAuthorName(results.at(1) as cheerio.Element);
+					const artUrl = ascii2d.getArtUrl(results.at(1) as cheerio.Element);
+					const artName = ascii2d.getArtName(results.at(1) as cheerio.Element);
+					const platform = ascii2d.getImagePlatform(results.at(1) as cheerio.Element);
 
 					const imageUtil = new ImageUtility(searchUrl, resultUrl);
-					await imageUtil.compareImages(await imageUtil.getSearchImg(), await imageUtil.getResultImg());
+					const nrmsd = await imageUtil.compareImages(await imageUtil.getSearchImg(), await imageUtil.getResultImg());
+					if(nrmsd < config.SauceMaxNRMSD && artName && artUrl && authorName && authorUrl && imageInfo && platform) {
+						const resultEmbed = new MessageEmbed().setColor("GOLD").setTitle(artName).setURL(`${artUrl}`)
+							.setDescription(`[${authorName}](${authorUrl}) / [Message](${messageUrl})\n${imageInfo.text()}`)
+							.setImage(resultUrl).setFooter({ text: platform.text() }).setTimestamp();
+						await message.channel.send({ embeds: [resultEmbed] });
+					}
 				}
 				catch(error) { 
 					console.log(error);

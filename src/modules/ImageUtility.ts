@@ -26,32 +26,54 @@ class ImageUtility {
 		return metadata;
 	}
 
-	public async compareImages(searchImg: Buffer, resultImg: Buffer) {
+	public async compareImages(searchImg: Buffer, resultImg: Buffer): Promise<number> {
 		const searchMeta = await this.getMetadata(searchImg);
 		const resultMeta = await this.getMetadata(resultImg);
-		let newSearch: BufferExtension = await sharp(searchImg).grayscale().raw().toBuffer({ resolveWithObject: true });
-		let newResult: BufferExtension = await sharp(resultImg).grayscale().raw().toBuffer({ resolveWithObject: true });
+		let newSearch: BufferExtension = await sharp(searchImg).raw().toBuffer({ resolveWithObject: true });
+		let newResult: BufferExtension = await sharp(resultImg).raw().toBuffer({ resolveWithObject: true });
 
-		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return false;
+		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return 1;
 		else if(searchMeta.width != resultMeta.width || searchMeta.height != resultMeta.width) {
 			const resizeWidth = searchMeta.width > resultMeta.width ? resultMeta.width : searchMeta.width;
 			const reszieHeight = searchMeta.height > resultMeta.height ? resultMeta.height : searchMeta.height;
 			newSearch = await sharp(searchImg).resize(resizeWidth, reszieHeight)
-				.grayscale().raw().toBuffer({ resolveWithObject: true });
+				.raw().toBuffer({ resolveWithObject: true });
 			newResult = await sharp(resultImg).resize(resizeWidth, reszieHeight)
-				.grayscale().raw().toBuffer({ resolveWithObject: true });
+				.raw().toBuffer({ resolveWithObject: true });
 		}
 
 		const searchArray = new Uint8ClampedArray(newSearch.data);
 		const resultArray = new Uint8ClampedArray(newResult.data);
-		let sum: number = 0;
+		let sum: number[] = [0, 0, 0, 0];
+		let R: number[] = [];
+		let G: number[] = [];
+		let B: number[] = [];
+		let A: number[] = [];
 
-		for(let i=0; i<searchArray.length; i++) {
-			sum += Math.pow(searchArray[i] - resultArray[i], 2);
+		for(let i=0; i<searchArray.length; i+=4) {
+			sum[0] += Math.pow(searchArray[i] - resultArray[i], 2);
+			R.push(searchArray[i], resultArray[i]);
+			sum[1] += Math.pow(searchArray[i+1] - resultArray[i+1], 2);
+			G.push(searchArray[i+1], resultArray[i+1]);
+			sum[2] += Math.pow(searchArray[i+2] - resultArray[i+2], 2);
+			B.push(searchArray[i+2], resultArray[i+2]);
+			sum[3] += Math.pow(searchArray[i+3] - resultArray[i+3], 2);
+			A.push(searchArray[i+3], resultArray[i+3]);
 		}
 
-		let rmsd = Math.sqrt(sum / searchArray.length);
-		console.log((255-rmsd)/255);
+		R.sort((a, b) => a - b);
+		G.sort((a, b) => a - b);
+		B.sort((a, b) => a - b);
+		A.sort((a, b) => a - b);
+
+		let rmsd: number = 0;
+		rmsd += Math.sqrt(sum[0]/(searchArray.length/4))/(R[R.length-1]-R[0]);
+		rmsd += Math.sqrt(sum[1]/(searchArray.length/4))/(G[G.length-1]-G[0]);
+		rmsd += Math.sqrt(sum[2]/(searchArray.length/4))/(B[B.length-1]-B[0]);
+		rmsd += Math.sqrt(sum[3]/(searchArray.length/4))/(A[A.length-1]-A[0]);
+		rmsd /= 4;
+
+		return rmsd;
 	}
 }
 
