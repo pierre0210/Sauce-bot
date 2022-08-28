@@ -1,5 +1,6 @@
 import axios from "axios";
 import sharp from "sharp";
+import { BufferExtension } from "../interfaces/BufferExtension";
 
 class ImageUtility {
 	urlSearch: string;
@@ -28,21 +29,29 @@ class ImageUtility {
 	public async compareImages(searchImg: Buffer, resultImg: Buffer) {
 		const searchMeta = await this.getMetadata(searchImg);
 		const resultMeta = await this.getMetadata(resultImg);
-		let newSearch: Buffer = searchImg;
-		let newResult: Buffer = resultImg;
+		let newSearch: BufferExtension = await sharp(searchImg).grayscale().raw().toBuffer({ resolveWithObject: true });
+		let newResult: BufferExtension = await sharp(resultImg).grayscale().raw().toBuffer({ resolveWithObject: true });
+
 		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return false;
 		else if(searchMeta.width != resultMeta.width || searchMeta.height != resultMeta.width) {
 			const resizeWidth = searchMeta.width > resultMeta.width ? resultMeta.width : searchMeta.width;
 			const reszieHeight = searchMeta.height > resultMeta.height ? resultMeta.height : searchMeta.height;
-			newSearch = await sharp(searchImg).resize(resizeWidth, reszieHeight).toBuffer();
-			newResult = await sharp(resultImg).resize(resizeWidth, reszieHeight).toBuffer();
+			newSearch = await sharp(searchImg).resize(resizeWidth, reszieHeight)
+				.grayscale().raw().toBuffer({ resolveWithObject: true });
+			newResult = await sharp(resultImg).resize(resizeWidth, reszieHeight)
+				.grayscale().raw().toBuffer({ resolveWithObject: true });
 		}
-		
-		//console.log(encodeSearch);
-		//console.log(encodeResult);
-		let difference: number = 0;
-		
-		console.log(difference);
+
+		const searchArray = new Uint8ClampedArray(newSearch.data);
+		const resultArray = new Uint8ClampedArray(newResult.data);
+		let sum: number = 0;
+
+		for(let i=0; i<searchArray.length; i++) {
+			sum += Math.pow(searchArray[i] - resultArray[i], 2);
+		}
+
+		let rmsd = Math.sqrt(sum / searchArray.length);
+		console.log((255-rmsd)/255);
 	}
 }
 
