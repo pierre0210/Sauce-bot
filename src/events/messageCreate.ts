@@ -32,8 +32,8 @@ export const messageCreate = async (message: Message) => {
 					const platform = ascii2d.getImagePlatform(results.at(1) as cheerio.Element);
 
 					const imageUtil = new ImageUtility(searchUrl, resultUrl);
-					const nrmsd = await imageUtil.compareImages(await imageUtil.getSearchImg(), await imageUtil.getResultImg());
-					if(nrmsd < config.SauceMaxNRMSD && artName && artUrl && authorName && authorUrl && imageInfo && platform) {
+					const compareResult = await imageUtil.compareImages(await imageUtil.getSearchImg(), await imageUtil.getResultImg());
+					if(compareResult && artName && artUrl && authorName && authorUrl && imageInfo && platform) {
 						const resultEmbed = new MessageEmbed().setColor("GOLD").setTitle(artName).setURL(`${artUrl}`)
 							.setDescription(`[${authorName}](${authorUrl}) / [Message](${messageUrl})\n${imageInfo.text()}`)
 							.setImage(resultUrl).setFooter({ text: platform.text() }).setTimestamp();

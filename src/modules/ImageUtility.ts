@@ -1,4 +1,5 @@
 import axios from "axios";
+import path from "path";
 import sharp from "sharp";
 import { BufferExtension } from "../interfaces/BufferExtension";
 
@@ -26,13 +27,13 @@ class ImageUtility {
 		return metadata;
 	}
 
-	public async compareImages(searchImg: Buffer, resultImg: Buffer): Promise<number> {
+	public async compareImages(searchImg: Buffer, resultImg: Buffer): Promise<boolean> {
 		const searchMeta = await this.getMetadata(searchImg);
 		const resultMeta = await this.getMetadata(resultImg);
 		let newSearch: BufferExtension = await sharp(searchImg).raw().toBuffer({ resolveWithObject: true });
 		let newResult: BufferExtension = await sharp(resultImg).raw().toBuffer({ resolveWithObject: true });
 
-		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return 1;
+		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return false;
 		else if(searchMeta.width != resultMeta.width || searchMeta.height != resultMeta.width) {
 			const resizeWidth = searchMeta.width > resultMeta.width ? resultMeta.width : searchMeta.width;
 			const reszieHeight = searchMeta.height > resultMeta.height ? resultMeta.height : searchMeta.height;
@@ -66,15 +67,48 @@ class ImageUtility {
 		B.sort((a, b) => a - b);
 		A.sort((a, b) => a - b);
 
-		let rmsd: number = 0;
-		rmsd += Math.sqrt(sum[0]/(searchArray.length/4))/(R[R.length-1]-R[0]);
-		rmsd += Math.sqrt(sum[1]/(searchArray.length/4))/(G[G.length-1]-G[0]);
-		rmsd += Math.sqrt(sum[2]/(searchArray.length/4))/(B[B.length-1]-B[0]);
-		rmsd += Math.sqrt(sum[3]/(searchArray.length/4))/(A[A.length-1]-A[0]);
-		rmsd /= 4;
+		let rms: number = 0;
+		rms += Math.sqrt(sum[0] / (searchArray.length / 4)) / (R[R.length-1] - R[0]);
+		rms += Math.sqrt(sum[1] / (searchArray.length / 4)) / (G[G.length-1] - G[0]);
+		rms += Math.sqrt(sum[2] / (searchArray.length / 4)) / (B[B.length-1] - B[0]);
+		rms += Math.sqrt(sum[3] / (searchArray.length / 4)) / (A[A.length-1] - A[0]);
+		rms /= 4;
+		rms = Math.round(rms*1000)/1000;
 
-		return rmsd;
+		let psnr: number = 10 * Math.log10(Math.pow(255, 2) / ((1 / (3 * searchArray.length / 4)) * (sum[0] + sum[1] + sum[2])));
+		psnr = Math.round(psnr*100)/100;
+		
+		console.log(psnr);
+		console.log(rms);
+
+		let result: boolean = false;
+		const configFilePath = path.join(process.cwd(), "prod", "config.json");
+		const config = await import(configFilePath);
+		if(config.SauceMaxNRMS > rms || config.SauceMinPSNR < psnr) result = true;
+
+		return result;
 	}
+	/*
+	public async compareImagesEntropy(searchImg: Buffer, resultImg: Buffer): Promise<number> {
+		const searchMeta = await this.getMetadata(searchImg);
+		const resultMeta = await this.getMetadata(resultImg);
+		let newSearch: BufferExtension = await sharp(searchImg).raw().toBuffer({ resolveWithObject: true });
+		let newResult: BufferExtension = await sharp(resultImg).raw().toBuffer({ resolveWithObject: true });
+
+		if(!searchMeta.width || !searchMeta.height || !resultMeta.width || !resultMeta.height) return 1;
+		else if(searchMeta.width != resultMeta.width || searchMeta.height != resultMeta.width) {
+			const resizeWidth = searchMeta.width > resultMeta.width ? resultMeta.width : searchMeta.width;
+			const reszieHeight = searchMeta.height > resultMeta.height ? resultMeta.height : searchMeta.height;
+			newSearch = await sharp(searchImg).resize(resizeWidth, reszieHeight)
+				.raw().toBuffer({ resolveWithObject: true });
+			newResult = await sharp(resultImg).resize(resizeWidth, reszieHeight)
+				.raw().toBuffer({ resolveWithObject: true });
+			sharp(searchImg)
+		}
+		const searchArray = new Uint8ClampedArray(newSearch.data);
+		const resultArray = new Uint8ClampedArray(newResult.data);
+	}
+	*/
 }
 
 export { ImageUtility };
