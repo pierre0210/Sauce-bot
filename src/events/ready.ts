@@ -10,7 +10,8 @@ const exampleConfig = {
 	DevGuildId: "",
 	SauceKeys: "your-saucenao-api-key",
 	SauceChannels: [],
-	SauceMaxNRMSD: 0.20
+	"SauceMaxNRMS": 0.03,
+	"SauceMinPSNR": 27.5
 }
 
 export const ready = async (client: ClientExtension) => {
