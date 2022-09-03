@@ -24,27 +24,27 @@ class Ascii2dResult {
 	}
 
 	public getImagePlatform(result: cheerio.Element): cheerio.Cheerio {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > small");
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > small");
 	}
 
 	public getPlatformAvatar(result: cheerio.Element): string | undefined {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > img").attr("src");
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > img").attr("src");
 	}
 
 	public getAuthorName(result: cheerio.Element): string {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > a:nth-child(3)").text();
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > a:nth-child(3)").text();
 	}
 
 	public getAuthorUrl(result: cheerio.Element): string | undefined {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > a:nth-child(3)").attr("href");
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > a:nth-child(3)").attr("href");
 	}
 
 	public getArtName(result: cheerio.Element): string {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > a:nth-child(2)").text();
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > a:nth-child(2)").text();
 	}
 
 	public getArtUrl(result: cheerio.Element): string | undefined {
-		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6 > a:nth-child(2)").attr("href");
+		return this.$(result).find(".col-xs-12.col-sm-12.col-md-8.col-xl-8.info-box > .detail-box.gray-link > h6:nth-last-child(1) > a:nth-child(2)").attr("href");
 	}
 }
 
