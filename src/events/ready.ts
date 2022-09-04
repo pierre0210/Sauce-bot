@@ -10,6 +10,7 @@ const exampleConfig = {
 	DevGuildId: "",
 	SauceKeys: "your-saucenao-api-key",
 	SauceChannels: [],
+	IsGlobal: false,
 	"SauceMaxNRMS": 0.03,
 	"SauceMinPSNR": 27.5
 }
@@ -34,11 +35,18 @@ export const ready = async (client: ClientExtension) => {
 	const rest = new REST({ version: "9" }).setToken(process.env.BOT_TOKEN as string);
 	const commandData = client.commands.map((cmd) => cmd.data.toJSON());
 	// Guild command registration
-	await rest.put(Routes.applicationGuildCommands(client.user?.id || "", config.DevGuildId), { body: commandData });
-	console.log("Registered Guild command");
+	if(config.IsGlobal) {
+		await rest.put(Routes.applicationCommands(client.user?.id || ""), { body: commandData });
+		console.log("Registered Global command");
+		await rest.put(Routes.applicationGuildCommands(client.user?.id || "", config.DevGuildId), { body: commandData });
+		console.log("Registered Guild command");
+	}
+	else {
+		await rest.put(Routes.applicationCommands(client.user?.id || ""), { body: [] });
+		console.log("Cleared Global command");
+		await rest.put(Routes.applicationGuildCommands(client.user?.id || "", config.DevGuildId), { body: commandData });
+		console.log("Registered Guild command");
+	}
 
-	// Global command registration
-	// await rest.put(Routes.applicationCommands(client.user?.id || ""), { body: commandData });
-	// console.log("Registered Global command");
 	console.log(`Logged in as ${client.user?.tag}`);
 }
