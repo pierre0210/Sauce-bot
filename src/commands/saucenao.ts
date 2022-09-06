@@ -46,7 +46,7 @@ export const saucenao: Command = {
 			params: {
 				url: imageURL,
 				db: 999,
-				api_key: config.SauceKeys,
+				api_key: config.SauceKey,
 				output_type: 2,
 				numres: resultNum
 			}
